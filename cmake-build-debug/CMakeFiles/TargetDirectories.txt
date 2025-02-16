@@ -1,0 +1,6 @@
+/Users/adelal-aali/CLionProjects/direct_payload_in_c/cmake-build-debug/CMakeFiles/untitled.dir
+/Users/adelal-aali/CLionProjects/direct_payload_in_c/cmake-build-debug/CMakeFiles/main.dir
+/Users/adelal-aali/CLionProjects/direct_payload_in_c/cmake-build-debug/CMakeFiles/copy_main.dir
+/Users/adelal-aali/CLionProjects/direct_payload_in_c/cmake-build-debug/CMakeFiles/notes.dir
+/Users/adelal-aali/CLionProjects/direct_payload_in_c/cmake-build-debug/CMakeFiles/edit_cache.dir
+/Users/adelal-aali/CLionProjects/direct_payload_in_c/cmake-build-debug/CMakeFiles/rebuild_cache.dir
