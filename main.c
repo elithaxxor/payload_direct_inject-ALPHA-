@@ -144,4 +144,4 @@ int initialize_server_socket(unsigned short port, const char *ip_address) {
     fflush(stdout);
 
     return server_socket;
-}    
+}
