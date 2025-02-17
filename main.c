@@ -23,10 +23,11 @@
 #include <unistd.h>
 #endif
 
+
+// Server config
 unsigned short serverPort = 1999;
 const char *ServerIP = "192.168.1.78";
 int new_return_code = 0;
-
 int initialize_server_socket(unsigned short port, const char *ip_address);
 
 void flush_stdout() {
@@ -35,6 +36,7 @@ void flush_stdout() {
     fflush(stdin);
 }
 
+//  Windows GUI application entry point, hides the console window and redirects the standard streams to a file named COCONUT$
 int APIENTRY WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nCmdShow) {
     HWND hWnd = GetConsoleWindow();
 
@@ -51,44 +53,38 @@ int APIENTRY WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLi
     freopen("COCONUT$", "w", stderr);
     freopen("CONN$", "r", stdin);
 
-    int server_socket = initialize_server_socket(serverPort, ServerIP);
-    printf("[!] Initial socket details,\n [+] IP: %s\n [+] Port: %hu\n [+]Server Socket: %d\n", ServerIP, serverPort, server_socket, WSAGetLastError());
-    sleep(3);
-    flush_stdout();
+int server_socket;
+do {
+    server_socket = initialize_server_socket(serverPort, ServerIP);
+    new_return_code = WSAGetLastError();
 
-    if (server_socket == 0 || new_return_code == 0) {
-        printf("\n[+] Server initialized\n [+] IP: %s\n [+] Port: %d\n", ServerIP, serverPort);
-        printf("\n [+] Server Socket: %d (last error code: %d)\n", server_socket, WSAGetLastError());
-        printf("\n [+] Server is now ready to accept connections\n");
-        flush_stdout();
-        server_socket = initialize_server_socket(serverPort, ServerIP);
-        sleep(3);
-        flush_stdout();
+    if (server_socket > 0) {
+        printf("\n[+] Server initialized successfully\n");
+        printf("[+] IP: %s\n[+] Port: %d\n", ServerIP, serverPort);
+        printf("[+] Server Socket: %d\n", server_socket);
+        printf("[+] Server is ready to accept connections\n");
     } else {
-        printf("\n[-] Server initialization failed\n [-] IP: %s\n [-] Port: %d\n", ServerIP, serverPort);
-        printf("[-] Error code: %d\n", WSAGetLastError());
-        printf("[-] retrying...");
+        printf("\n[-] Server initialization failed\n");
+        printf("[-] IP: %s\n[-] Port: %d\n", ServerIP, serverPort);
+        printf("[-] Error code: %d\n", new_return_code);
+        printf("[-] Retrying in 3 seconds...\n");
         sleep(3);
-        flush_stdout();
     }
-
-    while (server_socket != 0 || new_return_code != 0) {
-        int return_code = WSAGetLastError();
-        printf("\n [-]Server initialization failed\n [-] IP: %s\n [-] Port: %d\n", ServerIP, serverPort);
-        printf("\n [-] Error code: %d\n retrying...", return_code);
-        server_socket = initialize_server_socket(serverPort, ServerIP);
-        new_return_code = WSAGetLastError();
-        struct sockaddr_in server_addr = {0};
-        sleep(3);
-        flush_stdout();
-    }
+    flush_stdout();
+} while (server_socket <= 0);
+return 0;
 }
 
+
+/* Initialize the server socket, WSAStartup, socket, bind, and listen.
+    The WSAStartup function initiates the use of the Winsock DLL by a process.
+    The WSADATA structure contains information about the Windows Sockets implementation.
+ */
 int initialize_server_socket(unsigned short port, const char *ip_address) {
     printf("Initializing Winsock...\n");
     fflush(stdout);
 
-    WSADATA wsaData;
+    WSADATA wsaData; // Structure that contains information about the Windows Sockets implementation.
     int wVersionRequested = MAKEWORD(2, 2);
     int wsaError = WSAGetLastError();
     wsaError = WSAStartup(wVersionRequested, &wsaData);
