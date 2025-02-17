@@ -38,37 +38,40 @@ void flush_stdout() {
 
 //  Windows GUI application entry point, hides the console window and redirects the standard streams to a file named COCONUT$
 int APIENTRY WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nCmdShow) {
-    HWND hWnd = GetConsoleWindow();
 
+
+    console: // Label for goto statement
+    HWND hWnd = GetConsoleWindow();
+    printf("[+] Starting server...\n ... Initializing console...\n");
     if (hWnd == NULL) {
-        printf("[!n] Console window not found\n");
-    } else {
-        ShowWindow(hWnd, SW_HIDE);
+        printf("[!] Console window not found\n [!]... Retrying in 3 seconds...\n");
+        sleep(3);
+        goto console;
     }
+    printf("[+] Console window found: %p\n", hWnd);
+
+    // Hide the console window and redirect the standard streams to a file named COCONUT$
+    ShowWindow(hWnd, SW_HIDE);
     AllocConsole();
     hWnd = FindWindowA("ConsoleWindowClass", NULL);
     ShowWindow(hWnd, 0);
-
     freopen("COCONUT$", "w", stdout);
     freopen("COCONUT$", "w", stderr);
     freopen("CONN$", "r", stdin);
 
+    // Initialize the server socket and retry if it fails to initialize.
+    ///... gotta love C's do-while loop and goto statement
 int server_socket;
 do {
     server_socket = initialize_server_socket(serverPort, ServerIP);
     new_return_code = WSAGetLastError();
 
     if (server_socket > 0) {
-        printf("\n[+] Server initialized successfully\n");
-        printf("[+] IP: %s\n[+] Port: %d\n", ServerIP, serverPort);
-        printf("[+] Server Socket: %d\n", server_socket);
-        printf("[+] Server is ready to accept connections\n");
+            printf("\n[+] Server initialized on %s:%d (socket: %d)\n", ServerIP, serverPort, server_socket);
     } else {
-        printf("\n[-] Server initialization failed\n");
-        printf("[-] IP: %s\n[-] Port: %d\n", ServerIP, serverPort);
-        printf("[-] Error code: %d\n", new_return_code);
-        printf("[-] Retrying in 3 seconds...\n");
-        sleep(3);
+                printf("\n[-] Server initialization failed on %s:%d (error: %d)\n", ServerIP, serverPort, new_return_code);
+                printf("[-] Retrying in 3 seconds...\n");
+                sleep(3);
     }
     flush_stdout();
 } while (server_socket <= 0);
@@ -81,19 +84,35 @@ return 0;
     The WSADATA structure contains information about the Windows Sockets implementation.
  */
 int initialize_server_socket(unsigned short port, const char *ip_address) {
-    printf("Initializing Winsock...\n");
+    printf("[+] Initializing Winsock...\n [!] ", &ip_address, port);
+    sleep(3);
     fflush(stdout);
 
     WSADATA wsaData; // Structure that contains information about the Windows Sockets implementation.
     int wVersionRequested = MAKEWORD(2, 2);
     int wsaError = WSAGetLastError();
+    printf("[+] WSAGetLastError: %d\n", wsaError);
+    printf("[+] WSAStartup: %d\n", wsaError);
+    printf("[+] MAKEWORD: %d\n", wVersionRequested);
     wsaError = WSAStartup(wVersionRequested, &wsaData);
 
     if (wsaError != 0) {
         printf("\n [-] Please make sure you have WinSock DLL. \n [-] Error code: %d\n", WSAGetLastError());
+        printf("[+] Error code: %d\n", wsaError);
         exit(EXIT_FAILURE);
     }
+    printf("--------------------------------------------------------------------------------\n");
     printf("[+] WSAStartup initialized\n");
+
+    printf("[+] Error code: %d\n", wsaData.lpVendorInfo);
+    printf("[+] Major version: %d\n", wsaData.wVersion);
+    printf("[+] Minor version: %d\n", wsaData.wHighVersion);
+    printf("[+] Description: %s\n", wsaData.szDescription);
+    printf("[+] System status: %s\n", wsaData.szSystemStatus);
+    printf("[+] Max sockets: %d\n", wsaData.iMaxSockets);
+    printf("[+] Max datagram size: %d\n", wsaData.iMaxUdpDg);
+    printf("[+] Vendor info: %s\n", wsaData.lpVendorInfo);
+    printf("--------------------------------------------------------------------------------\n");
     fflush(stdout);
 
     int server_socket = socket(AF_INET, SOCK_STREAM, 0);
